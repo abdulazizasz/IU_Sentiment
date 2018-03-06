@@ -27,3 +27,8 @@ Datasets
 Stop words
 - https://github.com/mohataher/arabic-stop-words
 - NLTK stop words
+
+
+RUN
+
+python3 tweets_cleaning.py
