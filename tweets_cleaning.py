@@ -6,40 +6,37 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.corpus import stopwords
 import itertools
 import unicodedata
-from nltk.tag.stanford import StanfordPOSTagger
-from nltk.tag.stanford import CoreNLPPOSTagger
-from nltk.tokenize.stanford import CoreNLPTokenizer
 
 
-def getWordLists():
+
+def read_tweets():
     '''
-    Retrieve the stop words, negation words, exempt words, positive emojies
-    and negative emojies from files and save them in lists
-
-    return a bunch of list
+        Read all tweets from a combined csv file
+        Return a list of tweets
     '''
-    stopWords = [line[0] for line in csv.reader(open('stop_words.txt','r'))]
-    negationWords = [line[0] for line in csv.reader(open('negation_words.txt','r'))]
-    exemptWords = [line[0] for line in csv.reader(open('exempt_words.txt', 'r'))]
-    posEmojis = [line[0] for line in csv.reader(open('pos_emojis.txt', 'r'))]
-    negEmojis = [line[0] for line in csv.reader(open('neg_emojis.txt','r'))]
 
-    return stopWords, negationWords, exemptWords, posEmojis, negEmojis
-
-
-
-def main():
     all_tweets = []
     try:
-        with open ('./data/combined.csv') as f:
+        with open ('./data/tweets_data/combined.csv') as f:
             rows = csv.reader(f)
             for row in rows:
                 all_tweets.append(row[2])
     except:
         sys.exit(1)
 
+    return all_tweets
 
-    # stopwords
+def tweets_cleaning(all_tweets):
+    '''
+        Read the tweets from the read_tweets() function and prepare
+        preprocessing procedures.
+
+        Remove the stopwords, english sentence, links and emoticons
+
+        retrun a plain tweets
+    '''
+
+    # remove stop words
     stop_words = set(stopwords.words('arabic1'))
 
     # remove the emoticons
@@ -50,16 +47,23 @@ def main():
             u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
                                "]+", flags=re.UNICODE)
 
+    # where to stop the cleaned tweets
     cleand_tweets = []
 
     for row in all_tweets:
-        data = re.sub(r"http\S+", " ", row)
-        data = re.sub("[a-zA-Z\d+\W+\_@#:.///]", " ", data)
+        data = re.sub(r"http\S+", " ", row).strip()
+        data = re.sub("[a-zA-Z\d+\W+\_@#:.///]", " ", data).strip()
         tweets = emoji_pattern.sub(r'',data).strip()
-        sentence = re.sub(r"\s+", " ", tweets, flags=re.UNICODE)
+        sentence = re.sub(r"\s+", " ", tweets, flags=re.UNICODE).strip()
         cleand_tweets.append(sentence)
+        for word in word_tokenize(sentence):
+            print(word)
+            ### TO DO ##
+            ### Toeknizing the words and get the sentiments ###
 
 
+
+    # Building a simple lexicons
     lexicons = []
     for tweet in cleand_tweets:
          for word in word_tokenize(tweet):
@@ -67,10 +71,10 @@ def main():
                   if words not in stop_words:
                        lexicons.append(words)
 
-    print(len(lexicons))
 
-
-
+def main():
+    tweets = read_tweets()
+    tweets_cleaning(tweets)
 
 
 if __name__ == '__main__':
